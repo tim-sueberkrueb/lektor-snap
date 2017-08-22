@@ -1,0 +1,51 @@
+name: lektor
+version: 3.0.1
+summary: Lektor static file content management system
+description: |
+  Lektor is a static website generator. It builds out an entire project
+  from static files into many individual HTML pages and has a built-in
+  admin web interface.
+
+grade: devel
+confinement: strict
+
+apps:
+  lektor:
+    command: bin/launch-lektor
+    plugs:
+      - home
+      - network
+      - network-bind
+
+parts:
+  lektor:
+    plugin: python
+    source: https://github.com/lektor/lektor.git
+    source-tag: 3.0.1
+    prepare: |
+      make build-js
+    build-packages:
+      - imagemagick
+      - libssl-dev
+      - libffi-dev
+      # Necessary to build static files:
+      - make
+      - npm
+      - nodejs-legacy
+    stage:
+      - -lib/python3.5/site-packages/inifile.py
+  # Use newer python-inifile because there is no release
+  # with Python 3 support (yet):
+  # https://github.com/mitsuhiko/python-inifile/issues/7
+  python-inifile:
+    plugin: python
+    source: https://github.com/mitsuhiko/python-inifile.git
+    source-commit: d808c4a9d184595d6585390c01c4b8a87a79299a
+    after: [lektor]
+  launcher:
+    plugin: dump
+    source: snap
+    organize:
+      launcher.sh: bin/launch-lektor
+    stage:
+      - bin/launch-lektor

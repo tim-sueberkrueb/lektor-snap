@@ -5,3 +5,6 @@ stage/
 snap/.snapcraft
 *.snap
 *source.tar.bz2
+
+# PyCharm
+.idea/

@@ -24,6 +24,15 @@ parts:
     source-tag: 3.0.1
     prepare: |
       make build-js
+    # Fix search path for os-release file
+    # This is already fixed in upstream pip
+    # (since commit b005a9bb84c1903bf438d57c33938e67e8bb2b29)
+    # but the change is not in the python3-pip package
+    # in the Ubuntu 16.04 archives as of 2017-08-24
+    install: |
+      before="_UNIXCONFDIR = '/etc'"
+      after="_UNIXCONFDIR = os.environ.get('UNIXCONFDIR', '/etc')"
+      sed -i "s|$before|$after|g" $SNAPCRAFT_PART_INSTALL/lib/python3.5/site-packages/pip/_vendor/distro.py
     build-packages:
       - imagemagick
       - libssl-dev
@@ -42,6 +51,8 @@ parts:
     source: https://github.com/mitsuhiko/python-inifile.git
     source-commit: d808c4a9d184595d6585390c01c4b8a87a79299a
     after: [lektor]
+    stage:
+      - lib/python3.5/site-packages/inifile*
   launcher:
     plugin: dump
     source: snap
@@ -49,3 +60,12 @@ parts:
       launcher.sh: bin/launch-lektor
     stage:
       - bin/launch-lektor
+  # Include fake os-release file needed for
+  # pip in order to generate a user agent
+  os-release:
+    plugin: dump
+    source: snap
+    organize:
+      os-release: etc/os-release
+    stage:
+      - etc/os-release
